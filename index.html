@@ -39,9 +39,9 @@
   .domain-badge { position: absolute; top: 12px; right: 12px; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 99px; background: hsl(60, 40%, 90%); color: var(--color-primary); }
   .domain-name { font-size: 16px; font-weight: 500; color: var(--color-text-title); margin-bottom: 6px; }
   .domain-price-row { display: flex; align-items: baseline; gap: 6px; margin-top: 6px; }
-  .domain-price-new { font-size: 24px; font-weight: 600; color: var(--color-text-title); }
-  .domain-price-old { font-size: 13px; color: var(--color-text-secondary); text-decoration: line-through; }
-  .domain-price-period { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
+  .domain-price-new { font-size: 19px; font-weight: 600; color: var(--color-text-title); }
+  .domain-price-old { font-size: 12px; color: var(--color-text-secondary); text-decoration: line-through; }
+  .domain-price-period { font-size: 11px; color: var(--color-text-secondary); margin-top: 4px; }
   .plan-section { margin-bottom: 2.5rem; }
   .plan-card { background: var(--color-bg-body); border: 1px solid var(--color-border); border-radius: var(--border-radius); padding: 22px; cursor: pointer; display: flex; align-items: flex-start; gap: 16px; transition: all 0.2s ease; }
   .plan-card.selected { border: 2px solid var(--color-primary); background: var(--color-bg-card); }
@@ -93,6 +93,10 @@
       <div class="devis-title">Devis — AliaaCare</div>
       <div class="devis-sub">Sélectionnez votre domaine et votre forfait WhatsApp</div>
     </div>
+  </div>
+
+  <div style="background: rgba(33,150,243,0.1); border-left: 4px solid #2196f3; padding: 12px; margin-bottom: 20px; border-radius: 4px; font-size: 14px; line-height: 1.5; color: var(--color-text-primary);">
+    <strong>💡 Stratégie & Optimisation des coûts :</strong> L'estimation ci-dessous concerne l'infrastructure essentielle (Domaine et WaSend) et non le coût total de déploiement. Nous vous partageons cette première étape en toute transparence afin de choisir ensemble l'option la plus adaptée. Notre engagement : minimiser vos coûts globaux tout en garantissant un lancement ultra-performant. Validons ces bases solides et avançons avec succès vers la réussite de votre projet !
   </div>
 
   <div class="section-label">1. Choisissez votre nom de domaine</div>
@@ -185,13 +189,13 @@
       <span id="sumWasend">~60.00 MAD</span>
     </div>
     <div class="summary-row total">
-      <span>Total estimé 1ère année</span>
-      <span id="sumTotal">797.99 MAD</span>
+      <span id="totalLabel">Total estimé (1er mois)</span>
+      <span id="sumTotal"></span>
     </div>
   </div>
 
-  <button class="cta-btn" onclick="sendPrompt('Je valide le devis AliaaCare avec le domaine ' + selectedDomain + ' et le forfait WaSend Basic. Quelles sont les prochaines étapes pour finaliser ?')">Valider ce devis ↗</button>
-  <div class="note">Taux appliqué : 1 USD ≈ 10 MAD · Prix HT · WaSend facturé mensuellement</div>
+  <button id="toggleYearBtn" class="cta-btn" onclick="toggleYearly()" style="background: var(--color-bg-card-alt); color: var(--color-text-primary); margin-bottom: 15px; font-size: 14px; padding: 12px; border: 1px solid var(--color-border); box-shadow: none; display: block;">Voir l'estimation 1 an</button>
+  <button class="cta-btn" onclick="validerDevis()">Valider ce devis ↗</button>
 </div>
 
 <script>
@@ -199,6 +203,19 @@
   let selectedDomainPrice = 77.99;
   const USD_TO_MAD = 10;
   const wasendMonthly = 6 * USD_TO_MAD;
+
+  let isYearly = false;
+
+  function toggleYearly() {
+    isYearly = !isYearly;
+    const btn = document.getElementById('toggleYearBtn');
+    if (isYearly) {
+      btn.textContent = "Voir l'estimation 1er mois";
+    } else {
+      btn.textContent = "Voir l'estimation 1 an";
+    }
+    updateSummary();
+  }
 
   function selectDomain(card) {
     document.querySelectorAll('.domain-card').forEach(c => c.classList.remove('selected'));
@@ -218,9 +235,39 @@
     document.getElementById('sumDomain').textContent = selectedDomain;
     document.getElementById('sumDomainPrice').textContent = selectedDomainPrice.toFixed(2) + ' MAD';
     document.getElementById('sumWasend').textContent = '~' + wasendMonthly.toFixed(2) + ' MAD';
-    const yearly = selectedDomainPrice + (wasendMonthly * 12);
-    document.getElementById('sumTotal').textContent = yearly.toFixed(2) + ' MAD';
+    
+    const label = document.getElementById('totalLabel');
+    const totalEl = document.getElementById('sumTotal');
+
+    if (isYearly) {
+      label.textContent = "Total estimé 1ère année";
+      const yearly = selectedDomainPrice + (wasendMonthly * 12);
+      totalEl.textContent = yearly.toFixed(2) + ' MAD';
+    } else {
+      label.textContent = "Total estimé (1er mois)";
+      const monthly = selectedDomainPrice + wasendMonthly;
+      totalEl.textContent = monthly.toFixed(2) + ' MAD';
+    }
   }
+
+ function validerDevis() {
+  const domaine = selectedDomain;
+  const total   = document.getElementById("sumTotal").textContent;
+  const label   = document.getElementById("totalLabel").textContent;
+
+  const msg = [
+    "Bonjour Team Coding,",
+    "",
+    "Je souhaite valider le devis suivant :",
+    "- Domaine : " + domaine,
+    "- Forfait : WaSend Basic",
+    "- " + label + " : " + total,
+    "",
+    "Merci de m'indiquer la marche à suivre."
+  ].join("\n");
+
+  window.location.href = "https://wa.me/212658270294?text=" + encodeURIComponent(msg);
+}
 
   updateSummary();
 </script>
